@@ -155,9 +155,15 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                           type="text"
                           required
                           value={formData.username}
-                          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // 只允许字母和数字
+                            if (/^[a-zA-Z0-9]*$/.test(value)) {
+                              setFormData({ ...formData, username: value });
+                            }
+                          }}
                           className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-cyan-400/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400/50 transition-colors"
-                          placeholder="请输入用户名"
+                          placeholder="请输入用户名（仅支持字母和数字）"
                         />
                       </div>
                     </div>

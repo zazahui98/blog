@@ -65,7 +65,7 @@ export default function Footer() {
               </h3>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed">
-              用代码创造艺术，用技术改变世界
+              ❗每一行代码都在闪闪发光❗
             </p>
           </div>
 
@@ -94,14 +94,12 @@ export default function Footer() {
               资源
             </h4>
             <ul className="space-y-2">
-              {['文档', '博客', 'API'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 group">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50 group-hover:bg-blue-500 transition-colors" />
-                    {item}
-                  </a>
-                </li>
-              ))}
+              <li>
+                <Link href="/blog" className="text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 group">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50 group-hover:bg-blue-500 transition-colors" />
+                  博客
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -143,7 +141,7 @@ export default function Footer() {
             <div className="flex items-center gap-2">
               <span>© {currentYear} ErGou Blog.</span>
               <span>用</span>
-              <Heart className="w-4 h-4 text-blue-500 fill-blue-500" />
+              <Heart className="w-4 h-4 text-red-500 fill-red-500" />
               <span>制作</span>
             </div>
             <div className="text-center text-gray-400 text-sm">
