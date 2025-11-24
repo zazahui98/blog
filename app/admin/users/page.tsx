@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Ban, CheckCircle, Clock, Monitor, MapPin } from 'lucide-react';
+import { Search, Ban, CheckCircle, Clock, Monitor, MapPin, Key } from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
 import { Database, UserRole } from '@/lib/database.types';
 import AddUserModal from '@/components/AddUserModal';
+import ResetUserPasswordModal from '@/components/ResetUserPasswordModal';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
@@ -14,6 +15,8 @@ export default function UsersManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string; username: string } | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -134,6 +137,11 @@ export default function UsersManagement() {
       console.error('Failed to delete user:', error);
       alert('删除失败');
     }
+  };
+
+  const handleResetPassword = (userId: string, username: string) => {
+    setSelectedUser({ id: userId, username });
+    setShowResetPasswordModal(true);
   };
 
   const filteredUsers = users.filter(user =>
@@ -317,6 +325,14 @@ export default function UsersManagement() {
                       <div className="flex items-center justify-end gap-2">
                         <motion.button
                           whileHover={{ scale: 1.1 }}
+                          onClick={() => handleResetPassword(user.id, user.username)}
+                          className="p-2 text-gray-400 hover:text-purple-400 transition-colors"
+                          title="重置密码"
+                        >
+                          <Key className="w-4 h-4" />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
                           onClick={() => handleBanUser(user.id, (user as never)['is_banned'] || false)}
                           className="p-2 text-gray-400 hover:text-yellow-400 transition-colors"
                           title={(user as never)['is_banned'] ? '解除禁言' : '禁言用户'}
@@ -368,6 +384,18 @@ export default function UsersManagement() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSuccess={loadUsers}
+      />
+
+      {/* 重置密码模态框 */}
+      <ResetUserPasswordModal
+        isOpen={showResetPasswordModal}
+        onClose={() => {
+          setShowResetPasswordModal(false);
+          setSelectedUser(null);
+        }}
+        onSuccess={loadUsers}
+        userId={selectedUser?.id || ''}
+        username={selectedUser?.username || ''}
       />
     </div>
   );
