@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "name": "tech-blog-forum",
+  "framework": "nextjs",
+  "regions": ["hkg1"]
+}

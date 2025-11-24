@@ -1,6 +1,7 @@
+# Git忽略文件配置 - 指定哪些文件不需要被Git版本控制
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# dependencies - 依赖包目录和文件
 /node_modules
 /.pnp
 .pnp.*
@@ -10,32 +11,32 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# testing - 测试相关文件
 /coverage
 
-# next.js
+# next.js - Next.js构建输出目录
 /.next/
 /out/
 
-# production
+# production - 生产环境构建目录
 /build
 
-# misc
+# misc - 杂项文件
 .DS_Store
 *.pem
 
-# debug
+# debug - 调试日志文件
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files - 环境变量文件
+.env*.local
+.env
 
-# vercel
+# vercel - Vercel部署相关文件
 .vercel
 
-# typescript
+# typescript - TypeScript编译文件
 *.tsbuildinfo
 next-env.d.ts
