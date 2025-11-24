@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, ExternalLink, Github } from 'lucide-react';
 import { getProjects, createProject, updateProject, deleteProject, type Project } from '@/lib/supabase-helpers';
@@ -213,6 +213,7 @@ function ProjectEditModal({
   onClose: () => void; 
   onSave: () => void;
 }) {
+  const imageUploadRef = useRef<any>(null);
   const [formData, setFormData] = useState({
     title: project?.title || '',
     description: project?.description || '',
@@ -245,11 +246,32 @@ function ProjectEditModal({
     }
 
     try {
+      let finalCoverImage = formData.cover_image;
+
+      // 如果是blob URL（本地预览），需要先上传图片
+      if (formData.cover_image.startsWith('blob:')) {
+        console.log('检测到blob URL，触发图片上传...');
+        if (imageUploadRef.current?.triggerUpload) {
+          await imageUploadRef.current.triggerUpload();
+          // 上传完成后，formData.cover_image应该已经被更新为真实的URL
+          finalCoverImage = formData.cover_image;
+          
+          // 如果上传后仍然是blob URL，说明上传失败
+          if (finalCoverImage.startsWith('blob:')) {
+            alert('图片上传失败，请重试或使用图片URL方式');
+            return;
+          }
+        } else {
+          alert('图片上传功能不可用，请重试');
+          return;
+        }
+      }
+
       const data: Partial<Project> = {
         title: formData.title,
         description: formData.description,
         content: formData.content || '',
-        cover_image: formData.cover_image,
+        cover_image: finalCoverImage,
         tags: formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
         github_url: formData.github_url || null,
         demo_url: formData.demo_url || null,
@@ -335,6 +357,7 @@ function ProjectEditModal({
           </div>
 
           <ImageUpload
+            ref={imageUploadRef}
             value={formData.cover_image}
             onChange={(url) => setFormData({ ...formData, cover_image: url })}
             label="封面图片 *"

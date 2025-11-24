@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Link as LinkIcon, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
@@ -14,14 +14,14 @@ interface ImageUploadProps {
   immediate?: boolean; // 是否立即上传，false 则只预览
 }
 
-export default function ImageUpload({ 
+const ImageUpload = forwardRef(function ImageUpload({ 
   value, 
   onChange, 
   label = '图片',
   bucket = 'images',
   folder = 'uploads',
   immediate = false // 默认不立即上传
-}: ImageUploadProps) {
+}: ImageUploadProps, ref: React.Ref<any>) {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
@@ -29,6 +29,28 @@ export default function ImageUpload({
   const [previewUrl, setPreviewUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<File | null>(null);
+  const blobUrlRef = useRef<string>(''); // 用于跟踪blob URL
+
+  // 清理blob URL的函数
+  const cleanupBlobUrl = () => {
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = '';
+      console.log('已清理blob URL');
+    }
+  };
+
+  // 组件卸载时清理blob URL
+  useEffect(() => {
+    return () => {
+      cleanupBlobUrl();
+    };
+  }, []);
+
+  // 暴露方法给父组件
+  useImperativeHandle(ref, () => ({
+    triggerUpload
+  }));
 
   // 处理文件选择 - 立即上传或仅预览
   const handleFile = async (file: File) => {
@@ -41,10 +63,15 @@ export default function ImageUpload({
       return;
     }
 
+    // 清理之前的blob URL
+    cleanupBlobUrl();
+
     // 创建本地预览
     const localUrl = URL.createObjectURL(file);
     setPreviewUrl(localUrl);
+    blobUrlRef.current = localUrl; // 保存引用以便后续清理
     fileRef.current = file;
+    console.log('创建新的blob URL:', localUrl);
 
     if (immediate) {
       // 立即上传模式
@@ -92,6 +119,7 @@ export default function ImageUpload({
 
       onChange(publicUrl);
       setPreviewUrl('');
+      cleanupBlobUrl(); // 上传成功后清理blob URL
       fileRef.current = null;
       
       if (immediate) {
@@ -170,6 +198,7 @@ export default function ImageUpload({
   const handleRemove = () => {
     onChange('');
     setPreviewUrl('');
+    cleanupBlobUrl(); // 移除图片时清理blob URL
     fileRef.current = null;
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -311,4 +340,6 @@ export default function ImageUpload({
       </AnimatePresence>
     </div>
   );
-}
+});
+
+export default ImageUpload;
