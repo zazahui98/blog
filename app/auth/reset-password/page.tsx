@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react';
 import { updatePassword } from '@/lib/auth';
+import { supabase } from '@/lib/supabase-client';
 import Link from 'next/link';
 import { getErrorMessage } from '@/lib/error-messages';
 
@@ -23,10 +24,50 @@ function ResetPasswordContent() {
     // 检查URL中是否有access_token和refresh_token
     const accessToken = searchParams.get('access_token');
     const refreshToken = searchParams.get('refresh_token');
+    const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
+    
+    // 调试信息
+    console.log('🔍 [ResetPassword] URL参数检查:', {
+      accessToken: accessToken ? `${accessToken.substring(0, 20)}...` : 'null',
+      refreshToken: refreshToken ? `${refreshToken.substring(0, 20)}...` : 'null',
+      error,
+      errorDescription,
+      currentUrl: window.location.href
+    });
+    
+    if (error) {
+      setError(`重置密码链接错误: ${errorDescription || error}`);
+      return;
+    }
     
     if (!accessToken || !refreshToken) {
-      setError('无效的密码重置链接。请重新申请密码重置。');
+      setError('无效的密码重置链接。请重新申请密码重置。可能的原因：\n1. 链接已过期\n2. 链接已被使用\n3. 链接格式不正确');
+      return;
     }
+    
+    // 设置会话
+    const setSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        
+        if (error) {
+          console.error('❌ [ResetPassword] 设置会话失败:', error);
+          setError('会话设置失败，请重新申请密码重置。');
+          return;
+        }
+        
+        console.log('✅ [ResetPassword] 会话设置成功:', data.user?.email);
+      } catch (err) {
+        console.error('❌ [ResetPassword] 设置会话异常:', err);
+        setError('会话设置异常，请重新申请密码重置。');
+      }
+    };
+    
+    setSession();
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,7 +88,9 @@ function ResetPasswordContent() {
     setLoading(true);
     
     try {
+      console.log('🔄 [ResetPassword] 开始更新密码...');
       await updatePassword(password);
+      console.log('✅ [ResetPassword] 密码更新成功');
       setSuccess(true);
       
       // 3秒后跳转到登录页面
@@ -55,6 +98,7 @@ function ResetPasswordContent() {
         router.push('/');
       }, 3000);
     } catch (err) {
+      console.error('❌ [ResetPassword] 密码更新失败:', err);
       setError(getErrorMessage(err));
     } finally {
       setLoading(false);

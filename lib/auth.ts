@@ -223,11 +223,35 @@ export async function canEdit(): Promise<boolean> {
  * 重置密码请求
  */
 export async function resetPassword(email: string) {
+  // 获取当前域名，确保在生产环境中使用正确的域名
+  const getSiteUrl = () => {
+    if (typeof window !== 'undefined') {
+      // 客户端环境
+      return window.location.origin;
+    } else if (process.env.NEXT_PUBLIC_SITE_URL) {
+      // 服务端环境，使用环境变量
+      return process.env.NEXT_PUBLIC_SITE_URL;
+    } else {
+      // 默认值
+      return process.env.NODE_ENV === 'production' 
+        ? 'https://your-production-domain.com'  // 替换为您的生产域名
+        : 'http://localhost:3000';
+    }
+  };
+
+  const redirectTo = `${getSiteUrl()}/auth/reset-password`;
+  console.log('🔗 [resetPassword] 重置密码链接:', redirectTo);
+  
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/auth/reset-password`,
+    redirectTo,
   });
 
-  if (error) throw error;
+  if (error) {
+    console.error('❌ [resetPassword] 发送重置邮件失败:', error);
+    throw error;
+  }
+  
+  console.log('✅ [resetPassword] 重置邮件发送成功');
 }
 
 /**
