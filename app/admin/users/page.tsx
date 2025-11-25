@@ -24,13 +24,26 @@ export default function UsersManagement() {
 
   const loadUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
+      // 使用新创建的视图来获取用户资料和邮箱信息
+      const { data: usersWithEmails, error } = await supabase
+        .from('user_profiles_with_email')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (error) {
+        console.error('Failed to load users with emails:', error);
+        
+        // 如果视图不存在，回退到基础查询
+        const { data: profiles, error: profilesError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (profilesError) throw profilesError;
+        setUsers(profiles || []);
+      } else {
+        setUsers(usersWithEmails || []);
+      }
     } catch (error) {
       console.error('Failed to load users:', error);
     } finally {
@@ -144,11 +157,16 @@ export default function UsersManagement() {
     setShowResetPasswordModal(true);
   };
 
-  const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const searchLower = searchTerm.toLowerCase();
+    const username = user.username?.toLowerCase() || '';
+    const fullName = user.full_name?.toLowerCase() || '';
+    const email = (user as any).email?.toLowerCase() || '';
+    
+    return username.includes(searchLower) || 
+           fullName.includes(searchLower) ||
+           email.includes(searchLower);
+  });
 
   const getRoleBadge = (role: UserRole) => {
     const styles = {
@@ -211,6 +229,7 @@ export default function UsersManagement() {
             <thead className="bg-slate-800">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">用户</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">邮箱</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">角色</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">状态</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">最后登录</th>
@@ -248,6 +267,11 @@ export default function UsersManagement() {
                           <p className="text-white font-medium">{user.username}</p>
                           <p className="text-gray-400 text-sm">{user.full_name || '未设置'}</p>
                         </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-gray-300 text-sm">
+                        {user.email || '无邮箱'}
                       </div>
                     </td>
                     <td className="px-6 py-4">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { signIn, signUp } from '@/lib/auth';
 import { parseUserAgent, getClientIP } from '@/lib/device-parser';
@@ -245,6 +246,19 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                       : '注册'
                   }
                 </button>
+
+                {/* 忘记密码链接 */}
+                {mode === 'signin' && (
+                  <div className="text-center mt-4">
+                    <Link
+                      href="/auth/forgot-password"
+                      className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors"
+                      onClick={onClose}
+                    >
+                      忘记密码？
+                    </Link>
+                  </div>
+                )}
               </form>
 
               {/* 切换模式 */}

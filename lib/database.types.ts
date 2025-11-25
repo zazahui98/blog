@@ -34,6 +34,7 @@ export interface Database {
           last_login_os: string | null;
           last_login_browser: string | null;
           login_count: number;
+          email?: string; // 从视图中添加的邮箱字段
         };
         Insert: {
           id: string;
@@ -71,6 +72,29 @@ export interface Database {
           last_login_browser?: string | null;
           login_count?: number;
         };
+      };
+      user_profiles_with_email: { // 新增的视图定义
+        Row: {
+          id: string;
+          username: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          bio: string | null;
+          role: UserRole;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+          last_login_at: string | null;
+          last_login_ip: string | null;
+          last_login_device: string | null;
+          last_login_device_model: string | null;
+          last_login_os: string | null;
+          last_login_browser: string | null;
+          login_count: number;
+          email: string | null; // 从auth.users表获取的邮箱
+        };
+        Insert: never; // 视图不支持插入
+        Update: never; // 视图不支持更新
       };
       posts: {
         Row: {
