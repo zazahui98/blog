@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react';
 import { updatePassword } from '@/lib/auth';
 import Link from 'next/link';
+import { getErrorMessage } from '@/lib/error-messages';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +55,7 @@ export default function ResetPasswordPage() {
         router.push('/');
       }, 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '密码重置失败');
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -170,5 +171,24 @@ export default function ResetPasswordPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-slate-900/95 backdrop-blur-xl border border-cyan-400/30 rounded-3xl p-8 shadow-2xl shadow-cyan-500/20">
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto"></div>
+              <p className="text-gray-400 mt-4">加载中...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

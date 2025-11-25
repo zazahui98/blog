@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase-client';
 import { getCurrentUser } from '@/lib/auth';
 import Toast from './Toast';
 import { useToast } from '@/hooks/useToast';
+import { getErrorMessage } from '@/lib/error-messages';
 
 interface CommentFormProps {
   postId: string;
@@ -77,7 +78,7 @@ export default function CommentForm({ postId, onSuccess }: CommentFormProps) {
       }
       onSuccess();
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : '提交失败';
+      const errorMsg = getErrorMessage(err);
       setError(errorMsg);
       showToast(errorMsg, 'error');
     } finally {

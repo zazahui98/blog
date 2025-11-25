@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase-client';
 import { Database, UserRole } from '@/lib/database.types';
 import AddUserModal from '@/components/AddUserModal';
 import ResetUserPasswordModal from '@/components/ResetUserPasswordModal';
+import { getErrorMessage } from '@/lib/error-messages';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
@@ -46,6 +47,7 @@ export default function UsersManagement() {
       }
     } catch (error) {
       console.error('Failed to load users:', error);
+      alert(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -63,7 +65,7 @@ export default function UsersManagement() {
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
     } catch (error) {
       console.error('Failed to update role:', error);
-      alert('更新角色失败');
+      alert(getErrorMessage(error));
     }
   };
 
@@ -79,7 +81,7 @@ export default function UsersManagement() {
       setUsers(users.map(u => u.id === userId ? { ...u, is_active: !isActive } : u));
     } catch (error) {
       console.error('Failed to toggle active status:', error);
-      alert('更新状态失败');
+      alert(getErrorMessage(error));
     }
   };
 
@@ -108,7 +110,7 @@ export default function UsersManagement() {
         loadUsers();
       } catch (error) {
         console.error('Failed to ban user:', error);
-        alert('禁言失败');
+        alert(getErrorMessage(error));
       }
     } else {
       if (!confirm('确定要解除禁言吗？')) return;
@@ -128,7 +130,7 @@ export default function UsersManagement() {
         loadUsers();
       } catch (error) {
         console.error('Failed to unban user:', error);
-        alert('解除禁言失败');
+        alert(getErrorMessage(error));
       }
     }
   };
@@ -148,7 +150,7 @@ export default function UsersManagement() {
       setUsers(users.filter(u => u.id !== userId));
     } catch (error) {
       console.error('Failed to delete user:', error);
-      alert('删除失败');
+      alert(getErrorMessage(error));
     }
   };
 

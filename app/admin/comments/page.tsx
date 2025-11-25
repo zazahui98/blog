@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Search, Check, X, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
 import { Database } from '@/lib/database.types';
+import { getErrorMessage } from '@/lib/error-messages';
 
 type Comment = Database['public']['Tables']['comments']['Row'];
 
@@ -48,6 +49,7 @@ export default function CommentsManagement() {
       setComments(commentsWithPosts);
     } catch (error) {
       console.error('Failed to load comments:', error);
+      alert(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -65,7 +67,7 @@ export default function CommentsManagement() {
       setComments(comments.map(c => c.id === id ? { ...c, is_approved: true } : c));
     } catch (error) {
       console.error('Failed to approve comment:', error);
-      alert('审核失败');
+      alert(getErrorMessage(error));
     }
   };
 
@@ -81,7 +83,7 @@ export default function CommentsManagement() {
       setComments(comments.map(c => c.id === id ? { ...c, is_approved: false } : c));
     } catch (error) {
       console.error('Failed to reject comment:', error);
-      alert('操作失败');
+      alert(getErrorMessage(error));
     }
   };
 
@@ -98,7 +100,7 @@ export default function CommentsManagement() {
       setComments(comments.filter(c => c.id !== id));
     } catch (error) {
       console.error('Failed to delete comment:', error);
-      alert('删除失败');
+      alert(getErrorMessage(error));
     }
   };
 

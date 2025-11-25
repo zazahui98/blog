@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { signIn, signUp } from '@/lib/auth';
 import { parseUserAgent, getClientIP } from '@/lib/device-parser';
+import { getErrorMessage } from '@/lib/error-messages';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -93,7 +94,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         setFormData({ ...formData, password: '' });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '操作失败');
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

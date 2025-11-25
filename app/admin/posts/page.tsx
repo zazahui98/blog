@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2, Eye, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
 import { Database } from '@/lib/database.types';
 import Link from 'next/link';
+import { getErrorMessage } from '@/lib/error-messages';
 
 type Post = Database['public']['Tables']['posts']['Row'];
 
@@ -35,14 +36,14 @@ export default function PostsManagement() {
 
       if (error) {
         console.error('加载文章失败:', error);
-        alert('加载文章失败: ' + error.message);
+        alert('加载文章失败: ' + getErrorMessage(error));
         setPosts([]);
       } else {
         setPosts(data || []);
       }
     } catch (error) {
       console.error('Failed to load posts:', error);
-      alert('加载失败，请检查权限设置');
+      alert(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -59,7 +60,7 @@ export default function PostsManagement() {
 
       if (error) {
         console.error('删除失败:', error);
-        alert('删除失败: ' + error.message);
+        alert('删除失败: ' + getErrorMessage(error));
         return;
       }
       
@@ -67,7 +68,7 @@ export default function PostsManagement() {
       alert('删除成功！');
     } catch (error) {
       console.error('Failed to delete post:', error);
-      alert('删除失败，请检查权限');
+      alert(getErrorMessage(error));
     }
   };
 
