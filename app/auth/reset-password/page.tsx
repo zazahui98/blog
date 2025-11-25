@@ -7,7 +7,6 @@ import { Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react';
 import { updatePassword } from '@/lib/auth';
 import { supabase } from '@/lib/supabase-client';
 import Link from 'next/link';
-import { getErrorMessage } from '@/lib/error-messages';
 
 function ResetPasswordContent() {
   const [password, setPassword] = useState('');
@@ -61,6 +60,7 @@ function ResetPasswordContent() {
         }
         
         console.log('✅ [ResetPassword] 会话设置成功:', data.user?.email);
+        setError(''); // 清除任何之前的错误信息
       } catch (err) {
         console.error('❌ [ResetPassword] 设置会话异常:', err);
         setError('会话设置异常，请重新申请密码重置。');
@@ -72,7 +72,7 @@ function ResetPasswordContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(''); // 清除之前的错误信息
     
     // 验证密码
     if (password.length < 6) {
@@ -92,14 +92,25 @@ function ResetPasswordContent() {
       await updatePassword(password);
       console.log('✅ [ResetPassword] 密码更新成功');
       setSuccess(true);
+      setError(''); // 确保成功时清除所有错误
       
       // 3秒后跳转到登录页面
       setTimeout(() => {
         router.push('/');
       }, 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('❌ [ResetPassword] 密码更新失败:', err);
-      setError(getErrorMessage(err));
+      if (err?.message?.includes('Invalid login credentials')) {
+        setError('无效的密码重置链接');
+      } else if (err?.message?.includes('Token has expired')) {
+        setError('重置链接已过期，请重新申请');
+      } else if (err?.message?.includes('Password should be at least')) {
+        setError('密码长度至少为6个字符');
+      } else if (err?.message?.includes('weak password')) {
+        setError('密码强度不够，请使用更复杂的密码');
+      } else {
+        setError(err?.message || '密码重置失败，请稍后重试');
+      }
     } finally {
       setLoading(false);
     }
@@ -196,7 +207,7 @@ function ResetPasswordContent() {
               </div>
 
               {/* 错误信息 */}
-              {error && (
+              {error && !success && (
                 <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
                   {error}
                 </div>

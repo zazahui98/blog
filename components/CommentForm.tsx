@@ -7,7 +7,6 @@ import { supabase } from '@/lib/supabase-client';
 import { getCurrentUser } from '@/lib/auth';
 import Toast from './Toast';
 import { useToast } from '@/hooks/useToast';
-import { getErrorMessage } from '@/lib/error-messages';
 
 interface CommentFormProps {
   postId: string;
@@ -77,8 +76,18 @@ export default function CommentForm({ postId, onSuccess }: CommentFormProps) {
         showToast('评论已提交，等待审核', 'info');
       }
       onSuccess();
-    } catch (err) {
-      const errorMsg = getErrorMessage(err);
+    } catch (err: any) {
+      let errorMsg = '发表评论失败，请稍后重试';
+      if (err?.message?.includes('permission denied')) {
+        errorMsg = '没有权限发表评论';
+      } else if (err?.message?.includes('network')) {
+        errorMsg = '网络连接失败，请检查网络后重试';
+      } else if (err?.message?.includes('duplicate key')) {
+        errorMsg = '请不要重复提交相同的评论';
+      } else if (err?.message) {
+        errorMsg = err.message;
+      }
+      
       setError(errorMsg);
       showToast(errorMsg, 'error');
     } finally {

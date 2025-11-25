@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { Search, Check, X, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
 import { Database } from '@/lib/database.types';
-import { getErrorMessage } from '@/lib/error-messages';
 
 type Comment = Database['public']['Tables']['comments']['Row'];
 
@@ -47,9 +46,15 @@ export default function CommentsManagement() {
       })) || [];
 
       setComments(commentsWithPosts);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load comments:', error);
-      alert(getErrorMessage(error));
+      if (error?.message?.includes('permission denied')) {
+        alert('没有权限访问评论数据');
+      } else if (error?.message?.includes('network')) {
+        alert('网络连接失败，请检查网络后重试');
+      } else {
+        alert('加载评论失败，请稍后重试');
+      }
     } finally {
       setLoading(false);
     }
@@ -65,9 +70,15 @@ export default function CommentsManagement() {
       if (error) throw error;
       
       setComments(comments.map(c => c.id === id ? { ...c, is_approved: true } : c));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to approve comment:', error);
-      alert(getErrorMessage(error));
+      if (error?.message?.includes('permission denied')) {
+        alert('没有权限审核评论');
+      } else if (error?.message?.includes('network')) {
+        alert('网络连接失败，请检查网络后重试');
+      } else {
+        alert('审核评论失败，请稍后重试');
+      }
     }
   };
 
@@ -81,9 +92,15 @@ export default function CommentsManagement() {
       if (error) throw error;
       
       setComments(comments.map(c => c.id === id ? { ...c, is_approved: false } : c));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to reject comment:', error);
-      alert(getErrorMessage(error));
+      if (error?.message?.includes('permission denied')) {
+        alert('没有权限审核评论');
+      } else if (error?.message?.includes('network')) {
+        alert('网络连接失败，请检查网络后重试');
+      } else {
+        alert('操作失败，请稍后重试');
+      }
     }
   };
 
@@ -98,9 +115,15 @@ export default function CommentsManagement() {
 
       if (error) throw error;
       setComments(comments.filter(c => c.id !== id));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete comment:', error);
-      alert(getErrorMessage(error));
+      if (error?.message?.includes('permission denied')) {
+        alert('没有权限删除评论');
+      } else if (error?.message?.includes('network')) {
+        alert('网络连接失败，请检查网络后重试');
+      } else {
+        alert('删除评论失败，请稍后重试');
+      }
     }
   };
 

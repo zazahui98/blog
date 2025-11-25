@@ -20,6 +20,7 @@ interface BlogCardProps {
     views: number;        // 浏览次数
     likes: number;        // 点赞次数
     comments: number;     // 评论数量
+    userLiked?: boolean;  // 当前用户是否已点赞
   };
 }
 
@@ -142,7 +143,7 @@ export default function BlogCard({ blog }: BlogCardProps) {
             </motion.div>
             {/* 点赞数 */}
             <motion.div whileHover={{ scale: 1.1 }} className="flex items-center gap-1">
-              <Heart className="w-4 h-4" />
+              <Heart className={`w-4 h-4 ${blog.userLiked ? 'fill-red-500 text-red-500' : ''}`} />
               <span>{blog.likes}</span>
             </motion.div>
             {/* 评论数 */}

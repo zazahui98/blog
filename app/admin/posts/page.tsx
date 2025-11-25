@@ -6,7 +6,6 @@ import { Plus, Edit, Trash2, Eye, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
 import { Database } from '@/lib/database.types';
 import Link from 'next/link';
-import { getErrorMessage } from '@/lib/error-messages';
 
 type Post = Database['public']['Tables']['posts']['Row'];
 
@@ -36,14 +35,26 @@ export default function PostsManagement() {
 
       if (error) {
         console.error('加载文章失败:', error);
-        alert('加载文章失败: ' + getErrorMessage(error));
+        if (error?.message?.includes('permission denied')) {
+          alert('没有权限访问文章数据');
+        } else if (error?.message?.includes('network')) {
+          alert('网络连接失败，请检查网络后重试');
+        } else {
+          alert('加载文章失败，请稍后重试');
+        }
         setPosts([]);
       } else {
         setPosts(data || []);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load posts:', error);
-      alert(getErrorMessage(error));
+      if (error?.message?.includes('permission denied')) {
+        alert('没有权限访问文章数据');
+      } else if (error?.message?.includes('network')) {
+        alert('网络连接失败，请检查网络后重试');
+      } else {
+        alert('加载文章失败，请稍后重试');
+      }
     } finally {
       setLoading(false);
     }
@@ -60,15 +71,27 @@ export default function PostsManagement() {
 
       if (error) {
         console.error('删除失败:', error);
-        alert('删除失败: ' + getErrorMessage(error));
+        if (error?.message?.includes('permission denied')) {
+          alert('没有权限删除文章');
+        } else if (error?.message?.includes('network')) {
+          alert('网络连接失败，请检查网络后重试');
+        } else {
+          alert('删除文章失败，请稍后重试');
+        }
         return;
       }
       
       setPosts(posts.filter(p => p.id !== id));
       alert('删除成功！');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete post:', error);
-      alert(getErrorMessage(error));
+      if (error?.message?.includes('permission denied')) {
+        alert('没有权限删除文章');
+      } else if (error?.message?.includes('network')) {
+        alert('网络连接失败，请检查网络后重试');
+      } else {
+        alert('删除文章失败，请稍后重试');
+      }
     }
   };
 

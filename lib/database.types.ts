@@ -460,6 +460,26 @@ export interface Database {
           failure_reason?: string | null;
         };
       };
+      post_likes: {
+        Row: {
+          id: string;
+          post_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          post_id?: string;
+          user_id?: string;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       post_stats: {
@@ -484,6 +504,26 @@ export interface Database {
           post_count: number;
           comment_count: number;
           created_at: string;
+        };
+      };
+      posts_with_likes: {
+        Row: {
+          id: string;
+          title: string;
+          content: string;
+          slug: string;
+          excerpt: string;
+          cover_image: string;
+          tags: string[];
+          views: number;
+          likes: number;
+          created_at: string;
+          updated_at: string;
+          published: boolean;
+          author_id: string | null;
+          status: PostStatus;
+          like_count: number;
+          user_liked: number;
         };
       };
     };

@@ -9,17 +9,25 @@ import { getCurrentUser } from '@/lib/auth';
 interface LikeButtonProps {
   postId: string;
   initialLikes: number;
+  initialLiked?: boolean; // 初始点赞状态
+  onLikeChange?: (liked: boolean, likes: number) => void; // 点赞状态改变时的回调函数
 }
 
-export default function LikeButton({ postId, initialLikes }: LikeButtonProps) {
-  const [liked, setLiked] = useState(false);
+export default function LikeButton({ postId, initialLikes, initialLiked, onLikeChange }: LikeButtonProps) {
+  const [liked, setLiked] = useState(initialLiked || false);
   const [likes, setLikes] = useState(initialLikes);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    checkLikeStatus();
-  }, [postId]);
+    // 如果提供了初始点赞状态，则使用它
+    if (initialLiked !== undefined) {
+      setLiked(initialLiked);
+    } else {
+      // 否则检查点赞状态
+      checkLikeStatus();
+    }
+  }, [postId, initialLiked]);
 
   const checkLikeStatus = async () => {
     try {
@@ -42,7 +50,9 @@ export default function LikeButton({ postId, initialLikes }: LikeButtonProps) {
   };
 
   const handleLike = async () => {
-    if (!userId) {
+    // 实时获取当前用户，而不是依赖状态中的userId
+    const user = await getCurrentUser();
+    if (!user) {
       alert('请先登录');
       return;
     }
@@ -57,21 +67,25 @@ export default function LikeButton({ postId, initialLikes }: LikeButtonProps) {
           .from('post_likes')
           .delete()
           .eq('post_id', postId)
-          .eq('user_id', userId);
+          .eq('user_id', user.id);
 
         setLiked(false);
         setLikes(likes - 1);
+        // 通知父组件点赞状态已改变
+        if (onLikeChange) onLikeChange(false, likes - 1);
       } else {
         // 点赞
         await supabase
           .from('post_likes')
           .insert({
             post_id: postId,
-            user_id: userId,
+            user_id: user.id,
           } as never);
 
         setLiked(true);
         setLikes(likes + 1);
+        // 通知父组件点赞状态已改变
+        if (onLikeChange) onLikeChange(true, likes + 1);
       }
     } catch (error) {
       console.error('Failed to like:', error);

@@ -112,10 +112,31 @@ export async function POST(request: NextRequest) {
         message: '密码重置成功',
         success: true
       });
-    } catch (error) {
+    } catch (error: any) {
       console.log('❌ [API] 密码重置失败:', error);
+      
+      // 根据错误类型提供更友好的提示
+      let errorMsg = '';
+      if (error?.message?.includes('User not found')) {
+        errorMsg = '用户不存在，请检查用户ID是否正确';
+      } else if (error?.message?.includes('weak_password')) {
+        errorMsg = '密码强度不够，请使用更复杂的密码';
+      } else if (error?.message?.includes('invalid_request')) {
+        errorMsg = '请求参数无效，请检查输入';
+      } else if (error?.message?.includes('insufficient_permissions')) {
+        errorMsg = '权限不足，无法重置该用户密码';
+      } else if (error?.message?.includes('rate_limit')) {
+        errorMsg = '操作过于频繁，请稍后再试';
+      } else if (error?.message?.includes('network')) {
+        errorMsg = '网络连接失败，请检查网络后重试';
+      } else if (error?.message?.includes('timeout')) {
+        errorMsg = '请求超时，请稍后重试';
+      } else {
+        errorMsg = '密码重置失败：' + (error?.message || '未知错误');
+      }
+      
       return NextResponse.json(
-        { error: '密码重置失败，请稍后重试' },
+        { error: errorMsg },
         { status: 500 }
       );
     }
@@ -123,10 +144,27 @@ export async function POST(request: NextRequest) {
     // 密码重置逻辑已在上方try-catch中完成
     // 这里不需要额外的代码
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('API错误:', error);
+    
+    // 根据错误类型提供更友好的提示
+    let errorMsg = '';
+    if (error?.message?.includes('JSON')) {
+      errorMsg = '请求数据格式错误，请检查输入';
+    } else if (error?.message?.includes('auth')) {
+      errorMsg = '认证服务暂时不可用，请稍后重试';
+    } else if (error?.message?.includes('database')) {
+      errorMsg = '数据库连接失败，请联系管理员';
+    } else if (error?.message?.includes('network')) {
+      errorMsg = '网络连接失败，请检查网络后重试';
+    } else if (error?.message?.includes('timeout')) {
+      errorMsg = '请求超时，请稍后重试';
+    } else {
+      errorMsg = '服务器内部错误：' + (error?.message || '未知错误');
+    }
+    
     return NextResponse.json(
-      { error: '服务器内部错误' },
+      { error: errorMsg },
       { status: 500 }
     );
   }

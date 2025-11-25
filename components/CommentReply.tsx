@@ -63,8 +63,33 @@ export default function CommentReply({ commentId, onSuccess, onCancel }: Comment
         showToast('回复已提交，等待审核', 'info');
       }
       onSuccess();
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : '回复失败';
+    } catch (err: any) {
+      console.error('回复评论失败:', err);
+      
+      // 根据错误类型提供更友好的提示
+      let errorMsg = '';
+      if (err?.message?.includes('comment_replies')) {
+        if (err?.message?.includes('null value in column')) {
+          errorMsg = '回复内容不能为空';
+        } else if (err?.message?.includes('foreign key constraint')) {
+          errorMsg = '评论不存在，请刷新页面后重试';
+        } else if (err?.message?.includes('permission')) {
+          errorMsg = '没有回复权限，请检查登录状态';
+        } else if (err?.message?.includes('duplicate')) {
+          errorMsg = '请不要重复提交相同内容';
+        } else {
+          errorMsg = '回复失败：' + (err?.message || '未知错误');
+        }
+      } else if (err?.message?.includes('network')) {
+        errorMsg = '网络连接失败，请检查网络后重试';
+      } else if (err?.message?.includes('timeout')) {
+        errorMsg = '请求超时，请稍后重试';
+      } else if (err?.message?.includes('auth')) {
+        errorMsg = '登录状态已过期，请重新登录';
+      } else {
+        errorMsg = err instanceof Error ? err.message : '回复失败';
+      }
+      
       setError(errorMsg);
       showToast(errorMsg, 'error');
     } finally {

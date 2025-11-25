@@ -68,8 +68,29 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
         fullName: '',
         role: 'user',
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '创建失败');
+    } catch (err: any) {
+      console.error('创建用户失败:', err);
+      
+      // 根据错误类型提供更友好的提示
+      if (err?.message?.includes('User already registered')) {
+        setError('该邮箱已被注册，请使用其他邮箱');
+      } else if (err?.message?.includes('Password should be at least')) {
+        setError('密码长度至少为6位，请重新设置');
+      } else if (err?.message?.includes('Invalid email')) {
+        setError('邮箱格式不正确，请检查后重试');
+      } else if (err?.message?.includes('duplicate key')) {
+        setError('用户名已存在，请选择其他用户名');
+      } else if (err?.message?.includes('permission denied')) {
+        setError('没有权限创建用户，请联系管理员');
+      } else if (err?.message?.includes('network')) {
+        setError('网络连接失败，请检查网络后重试');
+      } else if (err?.message?.includes('timeout')) {
+        setError('请求超时，请稍后重试');
+      } else if (err?.message?.includes('rate limit')) {
+        setError('操作过于频繁，请稍后再试');
+      } else {
+        setError(err instanceof Error ? err.message : '创建用户失败，请稍后重试');
+      }
     } finally {
       setLoading(false);
     }

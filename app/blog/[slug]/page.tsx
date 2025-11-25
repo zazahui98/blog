@@ -26,11 +26,11 @@ export default function BlogPost() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 获取文章数据 - 根据slug从数据库查询文章
+    // 获取文章数据 - 根据slug从posts_with_likes视图查询文章
     async function fetchPost() {
       const slug = params.slug as string;
       const { data } = await supabase
-        .from('posts')
+        .from('posts_with_likes')
         .select('*')
         .eq('slug', slug)
         .single();
@@ -73,6 +73,16 @@ export default function BlogPost() {
       </div>
     );
   }
+
+  // 处理点赞状态改变的函数
+  const handleLikeChange = (liked: boolean, likes: number) => {
+    // 更新文章的点赞数和用户点赞状态
+    setPost((prev: any) => ({
+      ...prev,
+      like_count: likes,
+      user_liked: liked ? 1 : 0
+    }));
+  };
 
   // 标题内容
   const title = post.title;
@@ -133,7 +143,7 @@ export default function BlogPost() {
             {/* 点赞数统计 - 带心形图标 */}
             <div className="flex items-center gap-2">
               <Heart className="w-5 h-5" />
-              <span>{(post as { likes: number }).likes}</span>
+              <span>{(post as { like_count: number }).like_count}</span>
             </div>
           </motion.div>
 
@@ -169,7 +179,12 @@ export default function BlogPost() {
             </div>
 
             {/* 点赞按钮 */}
-            <LikeButton postId={post.id} initialLikes={post.likes} />
+            <LikeButton 
+              postId={post.id} 
+              initialLikes={post.like_count} 
+              initialLiked={post.user_liked > 0}
+              onLikeChange={handleLikeChange}
+            />
           </motion.div>
 
           {/* 文章内容 - 使用dangerouslySetInnerHTML渲染HTML内容 */}

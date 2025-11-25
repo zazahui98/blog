@@ -7,7 +7,6 @@ import { supabase } from '@/lib/supabase-client';
 import { Database, UserRole } from '@/lib/database.types';
 import AddUserModal from '@/components/AddUserModal';
 import ResetUserPasswordModal from '@/components/ResetUserPasswordModal';
-import { getErrorMessage } from '@/lib/error-messages';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
@@ -45,9 +44,15 @@ export default function UsersManagement() {
       } else {
         setUsers(usersWithEmails || []);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load users:', error);
-      alert(getErrorMessage(error));
+      if (error?.message?.includes('permission denied')) {
+        alert('没有权限访问用户数据');
+      } else if (error?.message?.includes('network')) {
+        alert('网络连接失败，请检查网络后重试');
+      } else {
+        alert('加载用户数据失败，请稍后重试');
+      }
     } finally {
       setLoading(false);
     }
@@ -63,9 +68,15 @@ export default function UsersManagement() {
       if (error) throw error;
       
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update role:', error);
-      alert(getErrorMessage(error));
+      if (error?.message?.includes('permission denied')) {
+        alert('没有权限修改用户角色');
+      } else if (error?.message?.includes('network')) {
+        alert('网络连接失败，请检查网络后重试');
+      } else {
+        alert('修改用户角色失败，请稍后重试');
+      }
     }
   };
 
@@ -79,9 +90,15 @@ export default function UsersManagement() {
       if (error) throw error;
       
       setUsers(users.map(u => u.id === userId ? { ...u, is_active: !isActive } : u));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to toggle active status:', error);
-      alert(getErrorMessage(error));
+      if (error?.message?.includes('permission denied')) {
+        alert('没有权限修改用户状态');
+      } else if (error?.message?.includes('network')) {
+        alert('网络连接失败，请检查网络后重试');
+      } else {
+        alert('修改用户状态失败，请稍后重试');
+      }
     }
   };
 
@@ -108,9 +125,15 @@ export default function UsersManagement() {
         if (error) throw error;
         alert('用户已被禁言');
         loadUsers();
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to ban user:', error);
-        alert(getErrorMessage(error));
+        if (error?.message?.includes('permission denied')) {
+          alert('没有权限禁言用户');
+        } else if (error?.message?.includes('network')) {
+          alert('网络连接失败，请检查网络后重试');
+        } else {
+          alert('禁言用户失败，请稍后重试');
+        }
       }
     } else {
       if (!confirm('确定要解除禁言吗？')) return;
@@ -128,9 +151,15 @@ export default function UsersManagement() {
         if (error) throw error;
         alert('已解除禁言');
         loadUsers();
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to unban user:', error);
-        alert(getErrorMessage(error));
+        if (error?.message?.includes('permission denied')) {
+          alert('没有权限解除禁言');
+        } else if (error?.message?.includes('network')) {
+          alert('网络连接失败，请检查网络后重试');
+        } else {
+          alert('解除禁言失败，请稍后重试');
+        }
       }
     }
   };
@@ -148,9 +177,15 @@ export default function UsersManagement() {
       
       alert('用户已删除');
       setUsers(users.filter(u => u.id !== userId));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete user:', error);
-      alert(getErrorMessage(error));
+      if (error?.message?.includes('permission denied')) {
+        alert('没有权限删除用户');
+      } else if (error?.message?.includes('network')) {
+        alert('网络连接失败，请检查网络后重试');
+      } else {
+        alert('删除用户失败，请稍后重试');
+      }
     }
   };
 

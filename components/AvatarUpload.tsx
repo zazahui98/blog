@@ -158,9 +158,40 @@ export default function AvatarUpload({ currentAvatar, onUploadSuccess, userId }:
       // 清理选择的文件
       setSelectedFile(null);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
-      showToast('上传失败，请重试', 'error');
+      
+      // 根据错误类型提供更友好的提示
+      let errorMsg = '';
+      if (error?.message?.includes('StorageError')) {
+        if (error?.message?.includes('bucket not found')) {
+          errorMsg = '存储桶不存在，请联系管理员配置';
+        } else if (error?.message?.includes('file size')) {
+          errorMsg = '文件大小超过限制（最大5MB）';
+        } else if (error?.message?.includes('file type')) {
+          errorMsg = '不支持的文件类型，请上传JPG、PNG或GIF格式图片';
+        } else if (error?.message?.includes('permission')) {
+          errorMsg = '没有上传权限，请检查登录状态';
+        } else if (error?.message?.includes('quota')) {
+          errorMsg = '存储空间已满，请联系管理员';
+        } else if (error?.message?.includes('duplicate')) {
+          errorMsg = '文件名重复，请稍后重试';
+        } else {
+          errorMsg = '头像上传失败：' + (error?.message || '未知错误');
+        }
+      } else if (error?.message?.includes('network')) {
+        errorMsg = '网络连接失败，请检查网络后重试';
+      } else if (error?.message?.includes('timeout')) {
+        errorMsg = '上传超时，请检查网络连接或减小图片大小';
+      } else if (error?.message?.includes('abort')) {
+        errorMsg = '上传已取消';
+      } else if (error?.message?.includes('user_profiles')) {
+        errorMsg = '用户资料更新失败，请重新登录后重试';
+      } else {
+        errorMsg = error instanceof Error ? error.message : '未知错误';
+      }
+      
+      showToast(`上传失败：${errorMsg}`, 'error');
     } finally {
       setUploading(false);
     }

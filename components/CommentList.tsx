@@ -152,9 +152,32 @@ export default function CommentList({ postId, refreshTrigger }: CommentListProps
       }
 
       loadComments();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to like comment:', error);
-      showToast('操作失败，请重试', 'error');
+      
+      // 根据错误类型提供更友好的提示
+      let errorMsg = '';
+      if (error?.message?.includes('comment_likes')) {
+        if (error?.message?.includes('duplicate key')) {
+          errorMsg = '您已经点赞过了';
+        } else if (error?.message?.includes('foreign key constraint')) {
+          errorMsg = '评论不存在，请刷新页面后重试';
+        } else if (error?.message?.includes('permission')) {
+          errorMsg = '没有操作权限，请检查登录状态';
+        } else {
+          errorMsg = '点赞操作失败：' + (error?.message || '未知错误');
+        }
+      } else if (error?.message?.includes('network')) {
+        errorMsg = '网络连接失败，请检查网络后重试';
+      } else if (error?.message?.includes('timeout')) {
+        errorMsg = '请求超时，请稍后重试';
+      } else if (error?.message?.includes('auth')) {
+        errorMsg = '登录状态已过期，请重新登录';
+      } else {
+        errorMsg = '操作失败，请重试';
+      }
+      
+      showToast(errorMsg, 'error');
     }
   };
 
@@ -176,9 +199,32 @@ export default function CommentList({ postId, refreshTrigger }: CommentListProps
 
       showToast('评论已删除', 'success');
       loadComments();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete comment:', error);
-      showToast('删除失败，请重试', 'error');
+      
+      // 根据错误类型提供更友好的提示
+      let errorMsg = '';
+      if (error?.message?.includes('comments')) {
+        if (error?.message?.includes('permission')) {
+          errorMsg = '没有删除权限，只有评论作者或管理员可以删除';
+        } else if (error?.message?.includes('foreign key constraint')) {
+          errorMsg = '评论不存在或已被删除';
+        } else if (error?.message?.includes('cascade')) {
+          errorMsg = '删除评论失败，请先删除所有回复';
+        } else {
+          errorMsg = '删除评论失败：' + (error?.message || '未知错误');
+        }
+      } else if (error?.message?.includes('network')) {
+        errorMsg = '网络连接失败，请检查网络后重试';
+      } else if (error?.message?.includes('timeout')) {
+        errorMsg = '请求超时，请稍后重试';
+      } else if (error?.message?.includes('auth')) {
+        errorMsg = '登录状态已过期，请重新登录';
+      } else {
+        errorMsg = '删除失败，请重试';
+      }
+      
+      showToast(errorMsg, 'error');
     }
   };
 
@@ -195,9 +241,30 @@ export default function CommentList({ postId, refreshTrigger }: CommentListProps
 
       showToast('回复已删除', 'success');
       loadComments();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete reply:', error);
-      showToast('删除失败，请重试', 'error');
+      
+      // 根据错误类型提供更友好的提示
+      let errorMsg = '';
+      if (error?.message?.includes('comment_replies')) {
+        if (error?.message?.includes('permission')) {
+          errorMsg = '没有删除权限，只有回复作者或管理员可以删除';
+        } else if (error?.message?.includes('foreign key constraint')) {
+          errorMsg = '回复不存在或已被删除';
+        } else {
+          errorMsg = '删除回复失败：' + (error?.message || '未知错误');
+        }
+      } else if (error?.message?.includes('network')) {
+        errorMsg = '网络连接失败，请检查网络后重试';
+      } else if (error?.message?.includes('timeout')) {
+        errorMsg = '请求超时，请稍后重试';
+      } else if (error?.message?.includes('auth')) {
+        errorMsg = '登录状态已过期，请重新登录';
+      } else {
+        errorMsg = '删除失败，请重试';
+      }
+      
+      showToast(errorMsg, 'error');
     }
   };
 

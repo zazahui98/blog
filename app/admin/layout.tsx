@@ -41,6 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       
       setUser(profile);
     } catch (error) {
+      console.error('认证检查失败:', error);
       router.push('/');
     } finally {
       setLoading(false);

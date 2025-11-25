@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
               {/* 提示信息 */}
               <div className="text-center">
                 <p className="text-gray-500 text-sm">
-                  重置链接将在24小时后失效
+                  重置链接将在1小时后失效
                 </p>
               </div>
             </form>

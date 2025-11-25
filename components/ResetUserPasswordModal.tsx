@@ -88,9 +88,35 @@ export default function ResetUserPasswordModal({
         newPassword: '',
         confirmPassword: '',
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('重置密码失败:', err);
-      setError(err instanceof Error ? err.message : '重置密码失败');
+      
+      // 根据错误类型提供更友好的提示
+      if (err?.message?.includes('未登录或会话已过期')) {
+        setError('登录状态已过期，请重新登录后再试');
+      } else if (err?.message?.includes('需要管理员权限')) {
+        setError('没有权限重置用户密码，请联系管理员');
+      } else if (err?.message?.includes('User not found')) {
+        setError('用户不存在，请检查用户信息');
+      } else if (err?.message?.includes('password')) {
+        setError('密码重置失败，请检查新密码是否符合要求');
+      } else if (err?.message?.includes('permission denied')) {
+        setError('没有权限执行此操作，请联系管理员');
+      } else if (err?.message?.includes('network')) {
+        setError('网络连接失败，请检查网络后重试');
+      } else if (err?.message?.includes('timeout')) {
+        setError('请求超时，请稍后重试');
+      } else if (err?.message?.includes('rate limit')) {
+        setError('操作过于频繁，请稍后再试');
+      } else if (err?.message?.includes('401')) {
+        setError('登录状态已过期，请重新登录');
+      } else if (err?.message?.includes('403')) {
+        setError('没有权限执行此操作');
+      } else if (err?.message?.includes('500')) {
+        setError('服务器内部错误，请稍后重试');
+      } else {
+        setError(err instanceof Error ? err.message : '重置密码失败，请稍后重试');
+      }
     } finally {
       setLoading(false);
     }

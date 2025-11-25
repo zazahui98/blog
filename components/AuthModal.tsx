@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { signIn, signUp } from '@/lib/auth';
 import { parseUserAgent, getClientIP } from '@/lib/device-parser';
-import { getErrorMessage } from '@/lib/error-messages';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -93,8 +92,20 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         setMode('signin');
         setFormData({ ...formData, password: '' });
       }
-    } catch (err) {
-      setError(getErrorMessage(err));
+    } catch (err: any) {
+      if (err?.message?.includes('Invalid login credentials')) {
+        setError('邮箱或密码错误');
+      } else if (err?.message?.includes('Email not confirmed')) {
+        setError('请先验证您的邮箱');
+      } else if (err?.message?.includes('User already registered')) {
+        setError('该邮箱已被注册');
+      } else if (err?.message?.includes('Password should be at least')) {
+        setError('密码长度至少需要6个字符');
+      } else if (err?.message?.includes('weak password')) {
+        setError('密码强度不够，请使用更复杂的密码');
+      } else {
+        setError(err?.message || '操作失败，请稍后重试');
+      }
     } finally {
       setLoading(false);
     }

@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
 
-type Post = Database['public']['Tables']['posts']['Row'];
+type PostWithLikes = Database['public']['Views']['posts_with_likes']['Row'];
 
 export default function BlogList() {
     // 文章列表状态 - 存储从数据库获取的文章数据
@@ -26,15 +26,15 @@ export default function BlogList() {
      */
     useEffect(() => {
         async function fetchPosts() {
-            // 从posts表中查询所有数据，按created_at字段降序排列
+            // 从posts_with_likes视图中查询所有数据，按created_at字段降序排列
             const { data } = await supabase
-                .from('posts')
+                .from('posts_with_likes')
                 .select('*')
                 .order('created_at', { ascending: false });
 
             if (data) {
                 // 格式化文章数据，根据语言选择显示内容
-                const formattedPosts = await Promise.all((data as Post[]).map(async post => {
+                const formattedPosts = await Promise.all((data as PostWithLikes[]).map(async post => {
                     // 获取每篇文章的评论数
                     const { count } = await supabase
                         .from('comments')
@@ -51,8 +51,9 @@ export default function BlogList() {
                         date: new Date(post.created_at).toLocaleDateString('zh-CN'), // 发布日期
                         tags: post.tags || [], // 标签数组
                         views: post.views || 0, // 浏览数，默认为0
-                        likes: post.likes || 0, // 点赞数，默认为0
+                        likes: post.like_count || 0, // 使用视图中的点赞数
                         comments: count || 0, // 真实评论数
+                        userLiked: post.user_liked > 0, // 当前用户是否已点赞
                     };
                 }));
                 setPosts(formattedPosts); // 更新文章列表状态
