@@ -86,14 +86,20 @@ export default function AnnouncementBanner() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`w-full max-w-7xl mx-auto px-4 mt-24 mb-4 ${styles.bg} ${styles.border} border backdrop-blur-xl rounded-2xl shadow-xl`}
+      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ 
+        type: "spring", 
+        stiffness: 400, 
+        damping: 25,
+        mass: 0.8
+      }}
+      className={`fixed top-[8.5rem] left-1/2 transform -translate-x-1/2 w-full max-w-[95%] sm:max-w-[90%] md:max-w-4xl lg:max-w-5xl mx-auto px-4 ${styles.bg} ${styles.border} border backdrop-blur-xl rounded-full shadow-xl z-40`}
     >
-      <div className="flex items-center gap-4 px-4 py-3">
+      <div className="flex items-start sm:items-center gap-3 px-3 py-2">
         {/* 图标 */}
-        <div className={`flex-shrink-0 ${styles.iconColor}`}>
-          <Icon className="w-5 h-5" />
+        <div className={`flex-shrink-0 ${styles.iconColor} mt-0.5 sm:mt-0`}>
+          <Icon className="w-4 h-4" />
         </div>
 
         {/* 内容 */}
@@ -106,12 +112,15 @@ export default function AnnouncementBanner() {
               exit={{ opacity: 0, x: -20 }}
               className="flex items-center gap-2"
             >
-              <span className="font-medium text-white">{current.title}</span>
-              {current.content && (
-                <span className="text-gray-300 text-sm hidden sm:inline">
-                  - {current.content}
-                </span>
-              )}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 min-w-0">
+                <span className="font-medium text-white text-sm leading-tight">{current.title}</span>
+                {current.content && (
+                  <span className="text-gray-300 text-xs leading-tight">
+                    <span className="hidden sm:inline">- </span>
+                    <span className="block sm:inline">{current.content}</span>
+                  </span>
+                )}
+              </div>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -121,18 +130,18 @@ export default function AnnouncementBanner() {
           <div className="flex items-center gap-1">
             <button
               onClick={prevAnnouncement}
-              className="p-1 text-gray-400 hover:text-white rounded transition-colors"
+              className="p-1 text-gray-400 hover:text-white rounded transition-colors hover:bg-white/10"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3 h-3" />
             </button>
-            <span className="text-xs text-gray-400 min-w-[3rem] text-center">
-              {currentIndex + 1} / {announcements.length}
+            <span className="text-xs text-gray-400 min-w-[2rem] text-center">
+              {currentIndex + 1}/{announcements.length}
             </span>
             <button
               onClick={nextAnnouncement}
-              className="p-1 text-gray-400 hover:text-white rounded transition-colors"
+              className="p-1 text-gray-400 hover:text-white rounded transition-colors hover:bg-white/10"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3 h-3" />
             </button>
           </div>
         )}
@@ -141,9 +150,9 @@ export default function AnnouncementBanner() {
         {current.is_dismissible && (
           <button
             onClick={() => handleDismiss(current.id)}
-            className="flex-shrink-0 p-1 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            className="flex-shrink-0 p-1 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3 h-3" />
           </button>
         )}
       </div>

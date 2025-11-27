@@ -13,7 +13,12 @@ import {
 } from '@/lib/supabase-helpers';
 import { getCurrentUser } from '@/lib/auth';
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+  isMobile?: boolean;
+  onMenuClose?: () => void;
+}
+
+export default function NotificationBell({ isMobile = false, onMenuClose }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -61,6 +66,10 @@ export default function NotificationBell() {
     if (!isOpen) {
       loadNotifications();
     }
+    // 移动端模式下点击时关闭菜单
+    if (isMobile && onMenuClose) {
+      onMenuClose();
+    }
   };
 
   const handleMarkAsRead = async (notificationId: string) => {
@@ -107,12 +116,12 @@ export default function NotificationBell() {
         onClick={handleOpen}
         className="relative p-2 text-gray-300 hover:text-white transition-colors rounded-full hover:bg-slate-800/50"
       >
-        <Bell className="w-5 h-5" />
+        <Bell className={isMobile ? "w-4 h-4" : "w-5 h-5"} />
         {unreadCount > 0 && (
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium"
+            className={isMobile ? "absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-medium" : "absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium"}
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </motion.span>

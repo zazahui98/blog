@@ -86,6 +86,11 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
     handleSearch(suggestion);
   };
 
+  // 阻止事件冒泡，防止点击搜索面板内部时关闭
+  const handlePanelClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   const hasResults = results && (
     results.posts.length > 0 || 
     results.projects.length > 0 || 
@@ -113,10 +118,13 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
             className="relative max-w-2xl mx-auto mt-20 mx-4"
+            onClick={handlePanelClick}
           >
+
+            
             <div className="bg-slate-900 border border-cyan-400/30 rounded-2xl shadow-2xl overflow-hidden">
               {/* 搜索输入框 */}
-              <div className="flex items-center gap-3 p-4 border-b border-slate-700">
+              <div className="flex items-center gap-3 p-4 border-b border-slate-700 relative">
                 <Search className="w-5 h-5 text-cyan-400" />
                 <input
                   ref={inputRef}
@@ -254,9 +262,15 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
               </div>
 
               {/* 底部提示 */}
-              <div className="p-3 border-t border-slate-700 flex items-center justify-between text-xs text-gray-500">
-                <span>按 ESC 关闭</span>
-                <span>按 Enter 搜索</span>
+              <div className="p-3 border-t border-slate-700 flex items-center justify-center text-xs text-gray-500 relative">
+                <span>按 ESC 或点击 ✕ 关闭</span>
+                <button
+                  onClick={onClose}
+                  className="absolute right-4 p-1.5 text-gray-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
+                  title="关闭搜索 (ESC)"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </motion.div>

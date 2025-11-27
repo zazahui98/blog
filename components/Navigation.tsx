@@ -1,13 +1,16 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Star, Home, FolderGit2, User, Menu, X, BookOpen, Wrench, Search } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Star, Home, FolderGit2, User, Menu, X, BookOpen, Wrench, Search, LayoutDashboard, Settings, LogOut, Bell } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { getCurrentUserProfile, getCurrentUser, signOut } from '@/lib/auth';
 import UserMenu from './UserMenu';
 import GlobalSearch from './GlobalSearch';
 import NotificationBell from './NotificationBell';
 import AnnouncementBanner from './AnnouncementBanner';
+import { useToast } from '@/hooks/useToast';
 
 /**
  * 导航栏组件 - 网站顶部导航菜单
@@ -26,6 +29,15 @@ export default function Navigation() {
   
   // 最后滚动位置 - 用于判断滚动方向
   const [lastScrollY, setLastScrollY] = useState(0);
+  
+  // 用户角色状态
+  const [userRole, setUserRole] = useState<string>(''); // 空字符串表示未登录
+  
+  // 未读消息数量
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+  
+  // Toast 提示
+  const { showToast } = useToast();
 
   /**
    * 滚动事件处理副作用
@@ -53,6 +65,34 @@ export default function Navigation() {
     // 清理函数 - 移除事件监听器
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isMobileMenuOpen, lastScrollY]);
+
+  // 获取用户登录状态和角色
+  useEffect(() => {
+    const loadUserInfo = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          const profile = await getCurrentUserProfile();
+          if (profile) {
+            setUserRole(profile.role);
+            // 获取未读消息数量
+            const { getUnreadNotificationCount } = await import('@/lib/supabase-helpers');
+            const { count } = await getUnreadNotificationCount(user.id);
+            setUnreadCount(count);
+          }
+        } else {
+          setUserRole(''); // 未登录时清空角色
+          setUnreadCount(0); // 未登录时清空未读消息数量
+        }
+      } catch (error) {
+        console.error('获取用户信息失败:', error);
+        setUserRole(''); // 出错时清空角色
+        setUnreadCount(0); // 出错时清空未读消息数量
+      }
+    };
+
+    loadUserInfo();
+  }, []);
 
   // 键盘快捷键打开搜索
   useEffect(() => {
@@ -211,7 +251,7 @@ export default function Navigation() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+          className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -243,15 +283,15 @@ export default function Navigation() {
             damping: 25,
             mass: 0.8
           }}
-          className="md:hidden fixed top-20 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm z-50"
+          className="md:hidden fixed top-20 left-1/2 transform -translate-x-1/2 w-[calc(100%-1rem)] max-w-md z-50"
         >
           <motion.div 
-            className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-cyan-400/40 rounded-3xl p-4 shadow-2xl shadow-cyan-500/40"
+            className="bg-gradient-to-br from-slate-900 to-slate-800 border border-cyan-400/40 rounded-3xl p-6 shadow-2xl shadow-cyan-500/40"
             style={{
               boxShadow: '0 0 40px rgba(6, 182, 212, 0.15), 0 20px 60px rgba(0, 0, 0, 0.3)'
             }}
           >
-            {/* 菜单顶部装饰线 */}
+            {/* 装饰性顶部线条 */}
             <motion.div 
               className="h-1 w-12 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full mx-auto mb-4"
               initial={{ scaleX: 0 }}
@@ -259,40 +299,168 @@ export default function Navigation() {
               transition={{ delay: 0.1, duration: 0.3 }}
             />
             
-            {/* 用户信息区域 */}
+            {/* 用户信息区域 - 重新设计为垂直布局 */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="mb-4"
             >
-              <UserMenu isMobile={true} onMenuClose={() => setIsMobileMenuOpen(false)} />
+              {/* 第一行：个人信息卡片 */}
+              <div className="mb-3">
+                <UserMenu isMobile={true} onMenuClose={() => setIsMobileMenuOpen(false)} />
+              </div>
+
+              {/* 第二行：功能按钮区域 - 按照指定布局 */}
+              <div className="space-y-2">
+                {/* 第一行：搜索和通知（所有用户显示） */}
+                <div className="grid grid-cols-2 gap-2">
+                  {/* 搜索按钮 */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setIsSearchOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex flex-col items-center gap-1 p-2 text-gray-300 hover:text-white transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 group border border-cyan-400/20"
+                  >
+                    <Search className="w-4 h-4 text-cyan-400" />
+                    <span className="text-xs font-medium">搜索</span>
+                  </motion.button>
+                  
+                  {/* 通知铃铛 */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      // 移动端直接跳转到通知页面，保持与其他按钮一致的简单逻辑
+                      window.location.href = '/notifications';
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex flex-col items-center gap-1 p-2 text-gray-300 hover:text-white transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 group border border-cyan-400/20 relative"
+                  >
+                    <Bell className="w-4 h-4 text-cyan-400" />
+                    <span className="text-xs font-medium">通知</span>
+                    {/* 未读消息提示 - 简化版本 */}
+                    <NotificationBadge count={unreadCount} />
+                  </motion.button>
+                </div>
+                
+                {/* 第二行：后台/设置和设置/退出（仅登录用户显示） */}
+                {userRole && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* 管理员显示后台按钮，普通用户显示设置按钮 */}
+                    {(userRole === 'admin' || userRole === 'editor') ? (
+                      <motion.a
+                        href="/admin"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex flex-col items-center gap-1 p-2 text-gray-300 hover:text-white transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 group border border-cyan-400/20"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-cyan-400" />
+                        <span className="text-xs font-medium">后台</span>
+                      </motion.a>
+                    ) : (
+                      <motion.a
+                        href="/profile"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex flex-col items-center gap-1 p-2 text-gray-300 hover:text-white transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 group border border-cyan-400/20"
+                      >
+                        <Settings className="w-4 h-4 text-cyan-400" />
+                        <span className="text-xs font-medium">设置</span>
+                      </motion.a>
+                    )}
+                    
+                    {/* 管理员显示设置按钮，普通用户显示退出按钮 */}
+                    {userRole === 'admin' || userRole === 'editor' ? (
+                      <motion.a
+                        href="/profile"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex flex-col items-center gap-1 p-2 text-gray-300 hover:text-white transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 group border border-cyan-400/20"
+                      >
+                        <Settings className="w-4 h-4 text-cyan-400" />
+                        <span className="text-xs font-medium">设置</span>
+                      </motion.a>
+                    ) : (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          // 普通用户直接显示退出按钮
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 transition-all duration-300 rounded-xl hover:bg-red-500/10 border border-red-400/20"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span className="text-xs font-medium">退出</span>
+                      </motion.button>
+                    )}
+                  </div>
+                )}
+                
+                {/* 第三行：退出按钮（仅管理员和编辑显示）*/}
+                {(userRole === 'admin' || userRole === 'editor') && (
+                  <div className="grid grid-cols-1 gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={async () => {
+                        try {
+                          await signOut();
+                          setUserRole(''); // 清空角色状态
+                          showToast('已退出登录', 'success');
+                        } catch (error) {
+                          console.error('退出登录失败:', error);
+                          showToast('退出登录失败', 'error');
+                        }
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 transition-all duration-300 rounded-xl hover:bg-red-500/10 border border-red-400/20 mx-auto w-1/2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="text-xs font-medium">退出</span>
+                    </motion.button>
+                  </div>
+                )}
+              </div>
             </motion.div>
 
             {/* 分隔线 */}
             <div className="h-px bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent mb-3" />
 
-            {/* 导航链接 */}
-            <div className="space-y-1">
-              {navItems.map((item, index) => (
-                <motion.div
-                  key={item.href}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 + index * 0.05 }}
-                >
-                  <Link href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
-                    <motion.div 
-                      whileHover={{ scale: 1.02, x: 4 }}
-                      className="flex items-center gap-3 p-3 text-gray-300 hover:text-white transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 group"
+            {/* 导航链接区域 - 重新设计 */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mb-3"
+            >
+              <div className="grid grid-cols-2 gap-2">
+                {navItems.map((item, index) => (
+                  <motion.div
+                    key={item.href}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 + index * 0.1 }}
+                  >
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex flex-col items-center gap-1 p-3 rounded-xl transition-all duration-300 group text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 border border-transparent hover:border-cyan-400/20"
                     >
-                      <item.icon className="w-5 h-5 text-cyan-400" />
-                      <span className="font-medium">{item.label}</span>
-                    </motion.div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+                      <item.icon className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform duration-300" />
+                      <span className="text-xs font-medium group-hover:scale-105 transition-transform duration-300">{item.label}</span>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </motion.div>
         </motion.div>
       )}
@@ -305,3 +473,20 @@ export default function Navigation() {
 
 // 导出公告横幅组件供布局使用
 export { AnnouncementBanner };
+
+/**
+ * 通知徽章组件 - 显示未读消息数量
+ */
+function NotificationBadge({ count }: { count: number }) {
+  if (count === 0) return null;
+  
+  return (
+    <motion.span
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-medium"
+    >
+      {count > 9 ? '9+' : count}
+    </motion.span>
+  );
+}

@@ -102,12 +102,12 @@ export default function UserMenu({ isMobile = false, onMenuClose }: UserMenuProp
     );
   }
 
-  // 移动端内嵌样式
+  // 移动端内嵌样式 - 只显示用户信息卡片
   if (isMobile) {
     return (
       <div>
         {/* 用户信息卡片 */}
-        <div className="p-3 bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-cyan-400/20 rounded-xl mb-2">
+        <div className="p-3 bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-cyan-400/20 rounded-xl">
           <div className="flex items-center gap-3">
             {user.avatar_url ? (
               <img
@@ -130,46 +130,6 @@ export default function UserMenu({ isMobile = false, onMenuClose }: UserMenuProp
               </span>
             </div>
           </div>
-        </div>
-
-        {/* 快捷操作按钮 */}
-        <div className="grid grid-cols-3 gap-2">
-          {(user.role === 'admin' || user.role === 'editor') && (
-            <Link href="/admin" onClick={onMenuClose}>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex flex-col items-center gap-1 p-2 text-gray-300 hover:text-white hover:bg-gradient-to-br hover:from-cyan-500/10 hover:to-blue-500/10 rounded-xl transition-all"
-              >
-                <LayoutDashboard className="w-5 h-5 text-cyan-400" />
-                <span className="text-xs font-medium">后台</span>
-              </motion.div>
-            </Link>
-          )}
-
-          <Link href="/profile" onClick={onMenuClose}>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex flex-col items-center gap-1 p-2 text-gray-300 hover:text-white hover:bg-gradient-to-br hover:from-cyan-500/10 hover:to-blue-500/10 rounded-xl transition-all"
-            >
-              <Settings className="w-5 h-5 text-cyan-400" />
-              <span className="text-xs font-medium">设置</span>
-            </motion.div>
-          </Link>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              handleSignOut();
-              onMenuClose?.();
-            }}
-            className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="text-xs font-medium">退出</span>
-          </motion.button>
         </div>
       </div>
     );

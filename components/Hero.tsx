@@ -86,7 +86,7 @@ export default function Hero() {
    * 包含多层背景动画、网格背景、鼠标跟随光晕、浮动粒子、主要内容展示和底部波浪装饰
    */
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center pt-40 overflow-hidden">
       {/* 多层背景动画 - 蓝色系渐变圆形 */}
       <div className="absolute inset-0">
         {/* 左上角大圆形 - 青色渐变 */}
