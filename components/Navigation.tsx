@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Star, Home, FolderGit2, User, Menu, X, BookOpen } from 'lucide-react';
+import { Star, Home, FolderGit2, User, Menu, X, BookOpen, Wrench } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import UserMenu from './UserMenu';
 
@@ -74,6 +74,7 @@ export default function Navigation() {
     { icon: Home, label: '首页', href: '/' },      // 首页
     { icon: BookOpen, label: '博客', href: '/#blog' }, // 博客
     { icon: FolderGit2, label: '项目', href: '/projects' }, // 项目
+    { icon: Wrench, label: '工具', href: '/tools' }, // 工具
     { icon: User, label: '关于', href: '/about' }, // 关于
   ];
 

@@ -53,11 +53,11 @@ export default function BlogPost() {
   if (loading) {
     // 加载状态 - 显示旋转动画
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full"
+          className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full"
         />
       </div>
     );
@@ -66,10 +66,17 @@ export default function BlogPost() {
   if (!post) {
     // 文章未找到 - 显示错误提示
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-2xl text-gray-400">
-          文章未找到
-        </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex flex-col items-center justify-center">
+        <Navigation />
+        <div className="text-center">
+          <p className="text-2xl text-gray-400 mb-4">
+            文章未找到
+          </p>
+          <Link href="/" className="text-cyan-400 hover:text-cyan-300">
+            返回首页
+          </Link>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -91,7 +98,7 @@ export default function BlogPost() {
 
   return (
     // 主页面容器 - 包含导航栏、文章内容和页脚
-    <main className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* 导航栏组件 - 包含Logo、导航链接 */}
       <Navigation />
       
@@ -226,6 +233,6 @@ export default function BlogPost() {
       
       {/* 页脚组件 - 网站底部信息 */}
       <Footer />
-    </main>
+    </div>
   );
 }

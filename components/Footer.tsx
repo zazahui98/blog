@@ -95,9 +95,15 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/blog" className="text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 group">
+                <Link href="/#blog" className="text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 group">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50 group-hover:bg-blue-500 transition-colors" />
                   博客
+                </Link>
+              </li>
+              <li>
+                <Link href="/tools" className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-2 group">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-500/50 group-hover:bg-cyan-500 transition-colors" />
+                  工具
                 </Link>
               </li>
             </ul>
