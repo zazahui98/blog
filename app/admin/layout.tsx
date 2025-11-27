@@ -15,7 +15,11 @@ import {
   Menu,
   X,
   Briefcase,
-  History
+  History,
+  Wrench,
+  Bell,
+  Megaphone,
+  Flag
 } from 'lucide-react';
 import { getCurrentUserProfile, signOut, UserProfile } from '@/lib/auth';
 
@@ -66,7 +70,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { icon: FileText, label: '文章管理', href: '/admin/posts', roles: ['admin', 'editor'] },
     { icon: Briefcase, label: '项目管理', href: '/admin/projects', roles: ['admin', 'editor'] },
     { icon: MessageSquare, label: '评论管理', href: '/admin/comments', roles: ['admin', 'editor'] },
+    { icon: Flag, label: '举报管理', href: '/admin/comment-reports', roles: ['admin', 'editor'] },
     { icon: FolderOpen, label: '分类管理', href: '/admin/categories', roles: ['admin', 'editor'] },
+    { icon: Megaphone, label: '公告管理', href: '/admin/announcements', roles: ['admin'] },
+    { icon: Bell, label: '通知管理', href: '/admin/notifications', roles: ['admin'] },
+    { icon: Wrench, label: '工具统计', href: '/admin/tools-stats', roles: ['admin'] },
     { icon: Users, label: '用户管理', href: '/admin/users', roles: ['admin'] },
     { icon: History, label: '登录历史', href: '/admin/login-history', roles: ['admin'] },
     { icon: Settings, label: '网站信息', href: '/admin/site-info', roles: ['admin'] },

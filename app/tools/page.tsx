@@ -1,6 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { 
   Database, 
@@ -12,10 +13,15 @@ import {
   Clock,
   Binary,
   Palette,
-  Key
+  Key,
+  Heart,
+  Star
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import ToolFavoriteButton from '@/components/ToolFavoriteButton';
+import { useUserFavoriteTools } from '@/hooks/useToolFavorite';
+import { getCurrentUser } from '@/lib/auth';
 
 /**
  * 工具项配置
@@ -96,6 +102,29 @@ const tools = [
 ];
 
 export default function ToolsPage() {
+  const { favorites, isLoading: favoritesLoading } = useUserFavoriteTools();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const user = await getCurrentUser();
+      setIsLoggedIn(!!user);
+    };
+    checkAuth();
+  }, []);
+
+  // 将收藏的工具排在前面
+  const sortedTools = useMemo(() => {
+    if (!favorites.length) return tools;
+    
+    const favoriteTools = tools.filter(tool => favorites.includes(tool.id));
+    const otherTools = tools.filter(tool => !favorites.includes(tool.id));
+    
+    return [...favoriteTools, ...otherTools];
+  }, [favorites]);
+
+  const favoriteCount = favorites.length;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <Navigation />
@@ -127,11 +156,64 @@ export default function ToolsPage() {
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
               精选开发者常用工具，提升工作效率
             </p>
+
+            {/* 收藏统计 */}
+            {isLoggedIn && favoriteCount > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/30 rounded-full"
+              >
+                <Heart className="w-4 h-4 text-red-400 fill-red-400" />
+                <span className="text-red-300 text-sm">
+                  已收藏 {favoriteCount} 个工具
+                </span>
+              </motion.div>
+            )}
           </motion.div>
+
+          {/* 收藏工具区域 */}
+          {isLoggedIn && favoriteCount > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mb-8"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                <h2 className="text-lg font-semibold text-white">我的收藏</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {sortedTools.slice(0, favoriteCount).map((tool, index) => (
+                  <motion.div
+                    key={`fav-${tool.id}`}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Link href={tool.href}>
+                      <ToolCard tool={tool} isFavorited showFavoriteButton={isLoggedIn} />
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* 分隔线 */}
+          {isLoggedIn && favoriteCount > 0 && (
+            <div className="flex items-center gap-4 my-8">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
+              <span className="text-gray-500 text-sm">全部工具</span>
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
+            </div>
+          )}
 
           {/* 工具卡片网格 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {tools.map((tool, index) => (
+            {(isLoggedIn && favoriteCount > 0 ? sortedTools.slice(favoriteCount) : sortedTools).map((tool, index) => (
               <motion.div
                 key={tool.id}
                 initial={{ opacity: 0, y: 30 }}
@@ -140,7 +222,11 @@ export default function ToolsPage() {
               >
                 {tool.available ? (
                   <Link href={tool.href}>
-                    <ToolCard tool={tool} />
+                    <ToolCard 
+                      tool={tool} 
+                      isFavorited={favorites.includes(tool.id)}
+                      showFavoriteButton={isLoggedIn}
+                    />
                   </Link>
                 ) : (
                   <ToolCard tool={tool} disabled />
@@ -159,7 +245,17 @@ export default function ToolsPage() {
 /**
  * 工具卡片组件
  */
-function ToolCard({ tool, disabled = false }: { tool: typeof tools[0]; disabled?: boolean }) {
+function ToolCard({ 
+  tool, 
+  disabled = false,
+  isFavorited = false,
+  showFavoriteButton = false,
+}: { 
+  tool: typeof tools[0]; 
+  disabled?: boolean;
+  isFavorited?: boolean;
+  showFavoriteButton?: boolean;
+}) {
   const Icon = tool.icon;
   
   return (
@@ -169,12 +265,23 @@ function ToolCard({ tool, disabled = false }: { tool: typeof tools[0]; disabled?
       className={`relative group p-6 rounded-2xl border transition-all duration-300 ${
         disabled
           ? 'bg-slate-900/30 border-slate-700/30 cursor-not-allowed opacity-60'
-          : 'bg-slate-900/50 border-cyan-500/20 hover:border-cyan-500/40 hover:shadow-xl hover:shadow-cyan-500/10 cursor-pointer'
+          : isFavorited
+            ? 'bg-slate-900/50 border-red-500/30 hover:border-red-500/50 hover:shadow-xl hover:shadow-red-500/10 cursor-pointer'
+            : 'bg-slate-900/50 border-cyan-500/20 hover:border-cyan-500/40 hover:shadow-xl hover:shadow-cyan-500/10 cursor-pointer'
       }`}
     >
       {/* 背景渐变 */}
       {!disabled && (
         <div className={`absolute inset-0 bg-gradient-to-br ${tool.color} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-300`} />
+      )}
+
+      {/* 收藏标记 */}
+      {isFavorited && (
+        <div className="absolute top-3 right-3">
+          <div className="p-1.5 bg-red-500/20 rounded-lg">
+            <Heart className="w-4 h-4 text-red-400 fill-red-400" />
+          </div>
+        </div>
       )}
       
       <div className="relative flex items-start gap-4">
@@ -200,16 +307,20 @@ function ToolCard({ tool, disabled = false }: { tool: typeof tools[0]; disabled?
           </p>
         </div>
         
-        {/* 箭头 */}
-        {!disabled && (
-          <motion.div
-            initial={{ x: 0, opacity: 0.5 }}
-            whileHover={{ x: 4, opacity: 1 }}
-            className="self-center"
-          >
-            <ArrowRight className="w-5 h-5 text-cyan-400" />
-          </motion.div>
-        )}
+        {/* 收藏按钮或箭头 */}
+        <div className="self-center flex items-center gap-2">
+          {showFavoriteButton && !disabled && (
+            <ToolFavoriteButton toolId={tool.id} size="sm" />
+          )}
+          {!disabled && !isFavorited && (
+            <motion.div
+              initial={{ x: 0, opacity: 0.5 }}
+              whileHover={{ x: 4, opacity: 1 }}
+            >
+              <ArrowRight className="w-5 h-5 text-cyan-400" />
+            </motion.div>
+          )}
+        </div>
       </div>
     </motion.div>
   );

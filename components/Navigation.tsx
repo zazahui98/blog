@@ -2,9 +2,12 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Star, Home, FolderGit2, User, Menu, X, BookOpen, Wrench } from 'lucide-react';
+import { Star, Home, FolderGit2, User, Menu, X, BookOpen, Wrench, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import UserMenu from './UserMenu';
+import GlobalSearch from './GlobalSearch';
+import NotificationBell from './NotificationBell';
+import AnnouncementBanner from './AnnouncementBanner';
 
 /**
  * 导航栏组件 - 网站顶部导航菜单
@@ -17,6 +20,9 @@ export default function Navigation() {
   
   // 移动端菜单状态 - 控制移动端菜单的显示/隐藏
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // 搜索模态框状态
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   
   // 最后滚动位置 - 用于判断滚动方向
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -47,6 +53,18 @@ export default function Navigation() {
     // 清理函数 - 移除事件监听器
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isMobileMenuOpen, lastScrollY]);
+
+  // 键盘快捷键打开搜索
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   /**
    * 点击外部区域关闭菜单
@@ -153,6 +171,23 @@ export default function Navigation() {
               </Link>
             </motion.div>
           ))}
+          
+          {/* 搜索按钮 */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsSearchOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-white transition-all duration-300 group relative rounded-full"
+          >
+            <Search className="w-4 h-4 group-hover:text-cyan-300 transition-colors" />
+            <span className="font-medium text-sm hidden lg:inline">搜索</span>
+            <kbd className="hidden lg:inline-flex items-center gap-1 px-1.5 py-0.5 text-xs bg-slate-800/50 text-gray-500 rounded border border-slate-700">
+              ⌘K
+            </kbd>
+          </motion.button>
+          
+          {/* 通知铃铛 */}
+          <NotificationBell />
           
           {/* 用户菜单 */}
           <UserMenu />
@@ -261,6 +296,12 @@ export default function Navigation() {
           </motion.div>
         </motion.div>
       )}
+
+      {/* 全局搜索模态框 */}
+      <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </motion.nav>
   );
 }
+
+// 导出公告横幅组件供布局使用
+export { AnnouncementBanner };

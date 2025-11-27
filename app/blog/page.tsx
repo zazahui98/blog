@@ -3,6 +3,7 @@
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import BlogList from '@/components/BlogList';
+import AnnouncementBanner from '@/components/AnnouncementBanner';
 import { motion } from 'framer-motion';
 
 /**
@@ -12,6 +13,7 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <Navigation />
+      <AnnouncementBanner />
       
       <main className="pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto">
